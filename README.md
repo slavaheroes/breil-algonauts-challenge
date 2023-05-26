@@ -2,7 +2,9 @@
 Repository to store code of BREIL members for Algonauts 2023 challenge
 
 Little review of current existing files:
-`algonauts_2023_challenge_tutorial.ipynb` - provided jupyter notebook by challenge hosts. It contains some visualizations of data, and baseline method for prediction using AlexNet. 
+
+`algonauts_2023_challenge_tutorial.ipynb` - provided jupyter notebook by challenge hosts. It contains some visualizations of data, and baseline method for prediction using AlexNet.
+> Remark: I removed this notebook from the repository due to its huge size. Please access it by [Link](https://colab.research.google.com/drive/1bLJGP3bAo_hAOwZPHpiSHKlt97X9xsUw?usp=share_link)
 
 `alexnet_submission.py` - .py version of the above notebook. It iterates over 8 subjects and saves prediction scores.
 
