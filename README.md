@@ -11,3 +11,7 @@ Little review of current existing files:
 `segment_anything_submission.py` - similar script as alexnet_submission but using Segment Anything model.
 
 `coco_image_matching.ipynb` - notebook to match ids of NSD images to the original images from COCO to get corresponding annotations. 
+
+`clip` - folder with scripts using CLIP model
+
+> `feature_extractor.py` - extracts features from train/test images, and saves as .npy array.
