@@ -2,10 +2,16 @@ import os
 import numpy as np
 
 from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Ridge
+from sklearn.linear_model import Lasso
+from sklearn.linear_model import ElasticNet
+
+from sklearn.ensemble import RandomForestRegressor
+from xgboost import XGBRegressor
 
 features_dir = '/SSD/slava/algonauts/clip_features'
 data_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_data'
-parent_submission_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_submission_clip'
+parent_submission_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_submission_clip_elasticnet'
 
 
 def load_dataset(npy_dir):
@@ -63,8 +69,8 @@ if __name__ == "__main__":
         print('(Training stimulus images × RH vertices)')
         
         # Fit some model: Currently Linear Regression
-        reg_lh = LinearRegression().fit(train_features, lh_fmri)
-        reg_rh = LinearRegression().fit(train_features, rh_fmri)
+        reg_lh = Lasso().fit(train_features, lh_fmri)
+        reg_rh = Lasso().fit(train_features, rh_fmri)
         
         lh_fmri_test_pred = reg_lh.predict(test_features)
         rh_fmri_test_pred = reg_rh.predict(test_features)
