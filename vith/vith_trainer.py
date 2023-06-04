@@ -1,3 +1,9 @@
+'''
+
+Inspired by Slavaheroes' code at https://github.com/qasymjomart/DAMIT_v1/blob/lightning-branch/lightning_learners/classification_trainer.py
+
+'''
+
 import pytorch_lightning as pl
 import torch
 import torch.nn.functional as F
@@ -35,16 +41,14 @@ class AlgonautsTrainer(pl.LightningModule):
                  model,
                  optimizer,
                  scheduler,
-                 config,
                  seed) -> None:
-        super(AlgonautsTrainer, self).__init__()
+        super().__init__()
         pl.seed_everything(seed)
         self.save_hyperparameters(ignore=['model'])
 
         self.model = model
         self.optimizer = optimizer
         self.scheduler = scheduler
-        self.config = config
 
         self.loss_fn = torchmetrics.PearsonCorrCoef()
 
@@ -63,7 +67,7 @@ class AlgonautsTrainer(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         images, labels = batch
         outputs = self.model(images)
-        loss = self.calc_loss(outputs, labels)
+        loss = 1 - self.calc_loss(outputs, labels)
         nn_corr_coeff = self.nn_corr(outputs, labels)
         self.log('loss', loss, on_epoch=True, prog_bar=True)
 
@@ -86,7 +90,7 @@ class AlgonautsTrainer(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         images, labels = batch
         outputs = self.model(images)
-        loss = self.calc_loss(outputs, labels)
+        loss = 1 - self.pearson_coeff(outputs, labels)
         nn_corr_coeff = self.nn_corr(outputs, labels)
 
         
