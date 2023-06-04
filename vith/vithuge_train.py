@@ -62,7 +62,7 @@ class ViTHugeAlgonauts(nn.Module):
         self.fc = nn.Sequential(
                 nn.Linear(1280, 4096),
                 nn.ReLU(),
-                nn.Linear(4096, 19004)
+                nn.Linear(4096, out)
         )
 
     def forward(self, x):
@@ -115,6 +115,7 @@ if __name__ == "__main__":
     parser.add_argument('--seed', type=int, help='Experiment seed (for reproducible results)')
     parser.add_argument('--epochs', type=int, default=20, help='Number of epochs to train the model')
     parser.add_argument('--bs', type=int, default=32, help='Batch size')
+    parser.add_argument('--hemisphere', type=str, default='left', help='fMRI hemisphere data to train on [left, right, both]')
     parser.add_argument('--devices', type=str, help='GPU devices to use')
     args = parser.parse_args()
 
@@ -185,7 +186,8 @@ if __name__ == "__main__":
         ''' 
         Model init, optimizer, scheduler init
         '''
-        model = ViTHugeAlgonauts(out=19004)
+        out = lh_fmri.shape[1] if args.hemisphere == 'left' else rh_fmri.shape[1]
+        model = ViTHugeAlgonauts(out=out)
         optimizer = torch.optim.AdamW(lr = 0.0001)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(T_max=EPOCHS, eta_min=0.0000001)
 
@@ -201,11 +203,11 @@ if __name__ == "__main__":
         del lh_fmri, rh_fmri
 
         train_dataloader = DataLoader(
-            AlgonautsImageDataset(train_imgs_paths, lh_fmri_train, rh_fmri_train, idxs_train, transform, hemisphere='left'), 
+            AlgonautsImageDataset(train_imgs_paths, lh_fmri_train, rh_fmri_train, idxs_train, transform, hemisphere=args.hemisphere), 
             batch_size=batch_size
         )
         val_datalaoder = DataLoader(
-            AlgonautsImageDataset(train_imgs_paths, lh_fmri_val, rh_fmri_val, idxs_val, transform, hemisphere='left'), 
+            AlgonautsImageDataset(train_imgs_paths, lh_fmri_val, rh_fmri_val, idxs_val, transform, hemisphere=args.hemisphere), 
             batch_size=batch_size
         )
 
@@ -229,8 +231,6 @@ if __name__ == "__main__":
             SEED
         )
 
-        grad_clip = None
-        grad_acum = 1
         trainer = pl.Trainer(
                 accelerator="gpu",
                 devices=[0],
@@ -240,8 +240,8 @@ if __name__ == "__main__":
                 # limit_val_batches=0.25,
                 check_val_every_n_epoch = 1,
                 logger=logger,
-                gradient_clip_val=grad_clip,
-                accumulate_grad_batches=grad_acum,
+                gradient_clip_val=None,
+                accumulate_grad_batches=1,
                 callbacks=callbacks,
                 log_every_n_steps=1,
             )
