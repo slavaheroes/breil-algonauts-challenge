@@ -78,12 +78,13 @@ transform = transforms.Compose([
 ])
 
 class AlgonautsImageDataset(Dataset):
-    def __init__(self, imgs_paths, lh_fmri, rh_fmri, idxs, transform, hemisphere='left'):
+    def __init__(self, imgs_paths, lh_fmri, rh_fmri, idxs, transform, device, hemisphere='left'):
         self.imgs_paths = np.array(imgs_paths)[idxs]
         self.lh_fmri = lh_fmri
         self.rh_fmri = rh_fmri
         self.transform = transform
         self.hemisphere = hemisphere
+        self.device = device
 
     def __len__(self):
         return len(self.imgs_paths)
@@ -98,11 +99,11 @@ class AlgonautsImageDataset(Dataset):
         if self.transform:
             img = self.transform(img).to(device)
         if self.hemisphere == 'left':
-            fmri_to_return = torch.tensor(lh_fmri_value).cuda()
+            fmri_to_return = torch.tensor(lh_fmri_value).to(self.device)
         elif self.hemisphere == 'right':
-            fmri_to_return = torch.tensor(rh_fmri_value).cuda()
+            fmri_to_return = torch.tensor(rh_fmri_value).to(self.device)
         elif self.hemisphere == 'both':
-            fmri_to_return = torch.tensor(np.concatenate((lh_fmri_value, rh_fmri_value))).cuda()
+            fmri_to_return = torch.tensor(np.concatenate((lh_fmri_value, rh_fmri_value))).to(self.device)
         return img, fmri_to_return
 
 data_dir = '/SSD/qasymjomart/algonauts/data'
@@ -120,14 +121,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     EPOCHS = args.epochs
-    SEED = args.seeds
+    SEED = args.seed
     set_seed(SEED)
 
     # Set up GPU devices to use
     if args.devices:
         print(f'Using GPU {args.devices}')
         os.environ["CUDA_DEVICE_ORDER"] = 'PCI_BUS_ID'
-        os.environ["CUDA_VISIBLE_DEVICES"]=args.devices
+        # os.environ["CUDA_VISIBLE_DEVICES"]=args.devices
         device = f'cuda:{args.devices}'
     else:
         device = 'cpu'
@@ -187,9 +188,9 @@ if __name__ == "__main__":
         Model init, optimizer, scheduler init
         '''
         out = lh_fmri.shape[1] if args.hemisphere == 'left' else rh_fmri.shape[1]
-        model = ViTHugeAlgonauts(out=out)
-        optimizer = torch.optim.AdamW(lr = 0.0001)
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(T_max=EPOCHS, eta_min=0.0000001)
+        model = ViTHugeAlgonauts(out=out).to(device)
+        optimizer = torch.optim.AdamW(model.parameters(), lr = 0.0001)
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS, eta_min=0.0000001)
 
 
         ''' 
@@ -203,11 +204,11 @@ if __name__ == "__main__":
         del lh_fmri, rh_fmri
 
         train_dataloader = DataLoader(
-            AlgonautsImageDataset(train_imgs_paths, lh_fmri_train, rh_fmri_train, idxs_train, transform, hemisphere=args.hemisphere), 
+            AlgonautsImageDataset(train_imgs_paths, lh_fmri_train, rh_fmri_train, idxs_train, transform, device, hemisphere=args.hemisphere), 
             batch_size=batch_size
         )
         val_datalaoder = DataLoader(
-            AlgonautsImageDataset(train_imgs_paths, lh_fmri_val, rh_fmri_val, idxs_val, transform, hemisphere=args.hemisphere), 
+            AlgonautsImageDataset(train_imgs_paths, lh_fmri_val, rh_fmri_val, idxs_val, transform, device, hemisphere=args.hemisphere), 
             batch_size=batch_size
         )
 
@@ -228,12 +229,13 @@ if __name__ == "__main__":
             model,
             optimizer,
             scheduler,
+            out,
             SEED
         )
 
         trainer = pl.Trainer(
                 accelerator="gpu",
-                devices=[0],
+                devices=[int(args.devices)],
                 max_epochs=EPOCHS,
                 num_sanity_val_steps=0,
                 # limit_train_batches=0.05,

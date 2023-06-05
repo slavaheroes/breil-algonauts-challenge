@@ -74,6 +74,10 @@ docs/_build/
 # PyBuilder
 .pybuilder/
 target/
+vith/logs/
+vith/subj*/
+vith/submission/
+
 
 # Jupyter Notebook
 .ipynb_checkpoints

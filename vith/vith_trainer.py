@@ -41,6 +41,7 @@ class AlgonautsTrainer(pl.LightningModule):
                  model,
                  optimizer,
                  scheduler,
+                 num_output,
                  seed) -> None:
         super().__init__()
         pl.seed_everything(seed)
@@ -49,10 +50,11 @@ class AlgonautsTrainer(pl.LightningModule):
         self.model = model
         self.optimizer = optimizer
         self.scheduler = scheduler
+        self.num_output = num_output
 
-        self.loss_fn = torchmetrics.PearsonCorrCoef()
+        self.loss_fn = torchmetrics.PearsonCorrCoef(num_outputs=self.num_output)
 
-        self.pearson_coeff = torchmetrics.PearsonCorrCoef()
+        self.pearson_coeff = torchmetrics.PearsonCorrCoef(num_outputs=self.num_output)
         self.nn_corr = MedianNNCorr()
 
         self.validation_step_outputs = []
