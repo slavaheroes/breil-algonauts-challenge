@@ -8,7 +8,9 @@ Little review of current existing files:
 
 `alexnet_submission.py` - .py version of the above notebook. It iterates over 8 subjects and saves prediction scores.
 
-`segment_anything_submission.py` - similar script as alexnet_submission but using Segment Anything model.
+`sam` - folder with scripts using Segment Anything
+
+> `segment_anything_submission.py` - similar script as alexnet_submission but using Segment Anything model.
 
 `coco_image_matching.ipynb` - notebook to match ids of NSD images to the original images from COCO to get corresponding annotations. 
 
