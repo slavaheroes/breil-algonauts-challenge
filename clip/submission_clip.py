@@ -1,24 +1,16 @@
 import os
 import numpy as np
 
-from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Ridge
-from sklearn.linear_model import Lasso
-from sklearn.linear_model import ElasticNet
-
-from sklearn.ensemble import RandomForestRegressor
-from xgboost import XGBRegressor
+from sklearn.model_selection import GridSearchCV
 
 features_dir = '/SSD/slava/algonauts/clip_features'
 data_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_data'
-parent_submission_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_submission_clip_elasticnet'
+parent_submission_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_submission_clip_large336'
 
 
 def load_dataset(npy_dir):
-    npy_files = sorted(os.listdir(npy_dir))
-    
-    print(npy_files[:10])
-    
+    npy_files = sorted(os.listdir(npy_dir))    
     image_features = []
     
     for npy_file in npy_files:
@@ -52,29 +44,39 @@ if __name__ == "__main__":
         train_features = load_dataset(train_path)
         test_features = load_dataset(test_path)
         
-        
         args = argObj(data_dir, parent_submission_dir, subj)
         fmri_dir = os.path.join(args.data_dir, 'training_split', 'training_fmri')
-        print(fmri_dir)
+
         lh_fmri = np.load(os.path.join(fmri_dir, 'lh_training_fmri.npy'))
         rh_fmri = np.load(os.path.join(fmri_dir, 'rh_training_fmri.npy'))
+            
+        # Fit some model: Currently Ridge Linear Regression
+        # Do Grid Search
+        parameters = {  
+                    'alpha': [0.1, 1.0, 5, 10, 100],
+                    }
         
-        ### TODO: Divide into the validation set also
+        reg_lh = GridSearchCV(
+            estimator=Ridge(),
+            param_grid=parameters
+        )
+        reg_lh.fit(train_features, lh_fmri)
         
-        print('LH training fMRI data shape:')
-        print(lh_fmri.shape)
-        print('(Training stimulus images × LH vertices)')
-        print('\nRH training fMRI data shape:')
-        print(rh_fmri.shape)
-        print('(Training stimulus images × RH vertices)')
+        print(f'Subj {subj} LH scores: {reg_lh.best_score_}')
         
-        # Fit some model: Currently Linear Regression
-        reg_lh = Lasso().fit(train_features, lh_fmri)
-        reg_rh = Lasso().fit(train_features, rh_fmri)
+        reg_rh = GridSearchCV(
+            estimator=Ridge(),
+            param_grid=parameters
+        )
+        
+        reg_rh.fit(train_features, rh_fmri)
+        
+        print(f'Subj {subj} RH scores: {reg_rh.best_score_}')
         
         lh_fmri_test_pred = reg_lh.predict(test_features)
         rh_fmri_test_pred = reg_rh.predict(test_features)
-        
+        print(f'LH: {np.isnan(lh_fmri_test_pred).any()}, RH: {np.isnan(rh_fmri_test_pred).any()}')
+                
         np.save(os.path.join(args.subject_submission_dir, 'lh_pred_test.npy'), lh_fmri_test_pred)
         np.save(os.path.join(args.subject_submission_dir, 'rh_pred_test.npy'), rh_fmri_test_pred)
 

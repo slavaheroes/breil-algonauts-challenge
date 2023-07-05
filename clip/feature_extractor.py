@@ -8,14 +8,12 @@ from PIL import Image
 import torch
 import clip
 
-
-
 data_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_data'
-save_dir = '/SSD/slava/algonauts/clip_features'
+save_dir = '/SSD/slava/algonauts/clip_large336_features'
 
 if __name__ == "__main__":
-    device = 'cpu'
-    model, preprocess = clip.load("ViT-B/32", device=device)
+    device = 'cuda:1'
+    model, preprocess = clip.load("ViT-L/14@336px", device=device)
     
     for subj in range(1, 9):
         subj_dir = os.path.join(data_dir, 'subj'+format(subj, '02'))
@@ -39,7 +37,7 @@ if __name__ == "__main__":
             ).unsqueeze(0)
             
             with torch.no_grad():
-                image_features = model.encode_image(image)
+                image_features = model.encode_image(image.to(device))
                 
             image_features = image_features.cpu().squeeze().detach().numpy()
 
@@ -48,7 +46,6 @@ if __name__ == "__main__":
                 os.path.join(save_dir_train, train_img[:-4] + ".npy"), 'wb'
             ) as f:
                 np.save(f, image_features)
-
         
         for test_img in tqdm(test_imgs, desc=f'subj {subj} test'):
             
@@ -57,7 +54,7 @@ if __name__ == "__main__":
             ).unsqueeze(0)
             
             with torch.no_grad():
-                image_features = model.encode_image(image)
+                image_features = model.encode_image(image.to(device))
                 
             image_features = image_features.cpu().squeeze().detach().numpy()
 
@@ -66,8 +63,3 @@ if __name__ == "__main__":
                 os.path.join(save_dir_test, test_img[:-4] + ".npy"), 'wb'
             ) as f:
                 np.save(f, image_features)
-        
-        
-            
-            
-

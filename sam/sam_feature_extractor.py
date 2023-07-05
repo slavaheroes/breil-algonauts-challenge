@@ -1,6 +1,5 @@
 import os
 import numpy as np
-from pathlib import Path
 from PIL import Image
 from tqdm import tqdm
 import torch
@@ -78,9 +77,4 @@ if __name__=="__main__":
                 os.path.join(save_dir_test, test_img[:-4] + ".npy"), 'wb'
             ) as f:
                 np.save(f, image_features)
-                
-        
-        
-        
-
-         
+                      
