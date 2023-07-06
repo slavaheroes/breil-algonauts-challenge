@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import GridSearchCV
 
-features_dir = '/SSD/slava/algonauts/clip_features'
+features_dir = '/SSD/slava/algonauts/clip_large336_features'
 data_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_data'
 parent_submission_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_submission_clip_large336'
 
@@ -75,7 +75,12 @@ if __name__ == "__main__":
         
         lh_fmri_test_pred = reg_lh.predict(test_features)
         rh_fmri_test_pred = reg_rh.predict(test_features)
+        print(lh_fmri_test_pred.shape, rh_fmri_test_pred.shape)
         print(f'LH: {np.isnan(lh_fmri_test_pred).any()}, RH: {np.isnan(rh_fmri_test_pred).any()}')
+        
+        # Convert to float32 before saving
+        lh_fmri_test_pred = np.float32(lh_fmri_test_pred)
+        rh_fmri_test_pred = np.float32(rh_fmri_test_pred)
                 
         np.save(os.path.join(args.subject_submission_dir, 'lh_pred_test.npy'), lh_fmri_test_pred)
         np.save(os.path.join(args.subject_submission_dir, 'rh_pred_test.npy'), rh_fmri_test_pred)

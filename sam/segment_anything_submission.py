@@ -4,8 +4,8 @@ from tqdm import tqdm
 
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import GridSearchCV
-from sklearn.decomposition import PCA
 
+import torch
 
 features_dir = '/SSD/slava/algonauts/sam_large_features'
 data_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_data'
@@ -15,14 +15,13 @@ parent_submission_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_submissio
 def load_dataset(npy_dir):
     npy_files = sorted(os.listdir(npy_dir))    
     image_features = []
-    pca = PCA(n_components=4)
     
     for npy_file in tqdm(npy_files, desc='feature_extraction'):
         img_feat = np.load(os.path.join(npy_dir, npy_file))
         
-        img_feat = pca.fit_transform(
-            np.transpose(np.reshape(img_feat, (256, 64*64)))
-        ).ravel()
+        img_feat = torch.nn.functional.avg_pool2d(
+            torch.Tensor(img_feat), kernel_size=32
+        ).view(-1).numpy()
         
         image_features.append(img_feat)
     
