@@ -9,11 +9,11 @@ import torch
 import clip
 
 data_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_data'
-save_dir = '/SSD/slava/algonauts/clip_large336_features'
+save_dir = '/SSD/slava/algonauts/clip_base_features'
 
 if __name__ == "__main__":
     device = 'cuda:1'
-    model, preprocess = clip.load("ViT-L/14@336px", device=device)
+    model, preprocess = clip.load("ViT-B/32", device=device)
     
     for subj in range(1, 9):
         subj_dir = os.path.join(data_dir, 'subj'+format(subj, '02'))

@@ -16,4 +16,6 @@ Little review of current existing files:
 
 `sam` - folder with scripts using Segment Anything
 
+> `clip_sam_ensemble.ipynb` - computes average of CLIP and SAM predictions
+
 `vith` - end-to-end training of ViT-H model initialized with ImageNet Weights
