@@ -4,9 +4,9 @@ import numpy as np
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import GridSearchCV
 
-features_dir = '/SSD/slava/algonauts/clip_text_features'
+features_dir = '/SSD/slava/algonauts/clip_large_features'
 data_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_data'
-parent_submission_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_submission_clip_textonly'
+parent_submission_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_submission_clip_large'
 
 
 def load_dataset(npy_dir):

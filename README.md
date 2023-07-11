@@ -18,4 +18,6 @@ Little review of current existing files:
 
 > `clip_sam_ensemble.ipynb` - computes average of CLIP and SAM predictions
 
+`clip_sam_nn` - folder with scripts where Neural Network from CLIP and SAM features are fit to the fMRI voxels
+
 `vith` - end-to-end training of ViT-H model initialized with ImageNet Weights

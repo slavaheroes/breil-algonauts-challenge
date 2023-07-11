@@ -1,0 +1,48 @@
+GRADIENT_ACCUMULATION_STEPS: 1
+GRADIENT_CLIPPING: Null
+EPOCHS: 200
+CHECK_VAL_EPOCHS: 2
+
+BATCH_SIZE: 16
+NUM_WORKERS: 8
+
+LOAD_PRETRAINED:
+  ENABLE: False
+  ARGS:
+    checkpoint_path: ""
+  
+OPTIMIZER:
+  MODULE: torch.optim
+  CLASS: AdamW
+  ARGS:
+    lr: 0.00001
+    weight_decay: 0.3
+    betas: [0.1, 0.9]
+
+SCHEDULER:
+  MODULE: torch.optim.lr_scheduler
+  CLASS: CosineAnnealingLR
+  ARGS:
+    T_max: 50
+    eta_min: 0.0000001
+
+EARLY_STOPPING:
+  ENABLE: False
+  ARGS:
+    monitor: valid_pearson_corr
+    mode: max
+    patience: 20
+    verbose: True
+
+LR_MONITOR:
+  ENABLE: True
+  ARGS:
+    logging_interval: 'epoch'
+    log_momentum: False
+
+CHECKPOINT:
+  ARGS:
+    save_top_k: 3
+    verbose: True
+    monitor: valid_pearson_corr
+    mode: max
