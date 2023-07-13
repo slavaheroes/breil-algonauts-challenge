@@ -6,4 +6,6 @@ Pytorch Lightning is used as a training framework.
 
 Details will be added in the future.
 
-> To DO: Add prediction script
+For training: `sh train_sh.sh`
+
+For prediction: `sh prediction_sh.sh`
