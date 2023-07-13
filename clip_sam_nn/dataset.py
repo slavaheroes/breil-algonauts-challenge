@@ -21,26 +21,24 @@ class Features_to_fMRI_Dataset(Dataset):
         self.mode = mode
         
         if mode=='train':
-            self.tail_dir = os.path.join(f'subj0{subj_idx}', 'train_features')
-            self.label_path = os.path.join(
-                main_data_dir, f'subj0{subj_idx}', 'training_split', 'training_fmri'
-            )
-
-            if side=='left':
-                self.label_path = os.path.join(self.label_path, 'lh_training_fmri.npy')
-            elif side=='right':
-                self.label_path = os.path.join(self.label_path, 'rh_training_fmri.npy')
-            else:
-                raise NameError
-            
-            assert os.path.exists(self.label_path), f"Label path is wrong: {self.label_path}"
-
+            self.tail_dir = os.path.join(f'subj0{subj_idx}', 'train_features') 
         elif mode=='test':
             self.tail_dir = os.path.join(f'subj0{subj_idx}', 'test_features')
-            self.label_path = None
-        
         else:
             raise NameError
+
+        self.label_path = os.path.join(
+            main_data_dir, f'subj0{subj_idx}', 'training_split', 'training_fmri'
+        )
+
+        if side=='left':
+            self.label_path = os.path.join(self.label_path, 'lh_training_fmri.npy')
+        elif side=='right':
+            self.label_path = os.path.join(self.label_path, 'rh_training_fmri.npy')
+        else:
+            raise NameError
+        
+        assert os.path.exists(self.label_path), f"Label path is wrong: {self.label_path}"
         
         self.clip_img_feat_dir = os.path.join(clip_img_feat_dir, self.tail_dir)
         self.clip_txt_feat_dir = os.path.join(clip_txt_feat_dir, self.tail_dir)
@@ -54,14 +52,14 @@ class Features_to_fMRI_Dataset(Dataset):
             os.listdir(self.clip_img_feat_dir)
         )
         print("First five filenames: ", self.filenames[:5])
+                     
+        self.labels = np.load(self.label_path)
+        self.feat_dim = self.labels.shape[1]
 
-        if self.label_path:
-            self.labels = np.load(self.label_path)
+        if mode=='train':
             print("Shape of labels: ", self.labels.shape)
-            self.feat_dim = self.labels.shape[1]
         else:
             print("Test mode, no labels path")
-            self.feat_dim = -1
             self.labels = None
 
         self.num_of_cases = len(self.filenames)
@@ -104,4 +102,4 @@ class Features_to_fMRI_Dataset(Dataset):
             label = self._make_tensor(label)
             return clip_img, clip_txt, sam_feat, label
 
-        return clip_img, clip_txt, sam_feat      
+        return clip_img, clip_txt, sam_feat, filename      

@@ -35,7 +35,7 @@ if __name__=="__main__":
     
     utils.set_seed(args.seed)
     
-    logger = WandbLogger(project="BREIL-Algonauts-challenge",
+    logger = WandbLogger(project="BREIL-Algonauts-challenge-clip_sam_nn",
                     name=FILENAME_POSTFIX,
                     save_dir="/SSD/slava/algonauts/wandb_checkpoints",
                     log_model=False
@@ -45,7 +45,7 @@ if __name__=="__main__":
     
     # Make data
     full_dataset = Features_to_fMRI_Dataset(subj_idx=args.subj, side=args.side, mode='train')
-    train_size = 9700 #int(0.8 * len(full_dataset))
+    train_size = int(0.8 * len(full_dataset))
     valid_size = len(full_dataset) - train_size
     train_dataset, valid_dataset = torch.utils.data.random_split(full_dataset, [train_size, valid_size], generator=generator)
     
@@ -119,7 +119,8 @@ if __name__=="__main__":
         accumulate_grad_batches=grad_acum,
         callbacks=callbacks,
         log_every_n_steps=1,
+        precision="16-mixed"
     )
     
     # valid, valid is for one-batch overfit, then will be changed to train, valid
-    trainer.fit(lightning_model, valid_loader, valid_loader)
+    trainer.fit(lightning_model, train_loader, valid_loader)

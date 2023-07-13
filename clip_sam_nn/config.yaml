@@ -15,22 +15,22 @@ OPTIMIZER:
   MODULE: torch.optim
   CLASS: AdamW
   ARGS:
-    lr: 0.00001
-    weight_decay: 0.3
+    lr: 0.00003
+    weight_decay: 0.2
     betas: [0.1, 0.9]
 
 SCHEDULER:
   MODULE: torch.optim.lr_scheduler
   CLASS: CosineAnnealingLR
   ARGS:
-    T_max: 50
+    T_max: 100
     eta_min: 0.0000001
 
 EARLY_STOPPING:
-  ENABLE: False
+  ENABLE: True
   ARGS:
-    monitor: valid_pearson_corr
-    mode: max
+    monitor: valid_loss
+    mode: min
     patience: 20
     verbose: True
 
@@ -42,7 +42,7 @@ LR_MONITOR:
 
 CHECKPOINT:
   ARGS:
-    save_top_k: 3
+    save_top_k: 1
     verbose: True
-    monitor: valid_pearson_corr
-    mode: max
+    monitor: valid_loss
+    mode: min

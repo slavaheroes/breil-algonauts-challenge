@@ -26,7 +26,7 @@ class VanillaTrainer(pl.LightningModule):
         self.training_step_outputs = []
     
     def forward(self, clip_img, clip_txt, sam_feat):
-        self.model(clip_img, clip_txt, sam_feat)
+        return self.model(clip_img, clip_txt, sam_feat)
     
     def calc_loss(self, x_hat, y):
         return self.loss_fn(x_hat, y)
