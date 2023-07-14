@@ -4,6 +4,9 @@ import numpy as np
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import GridSearchCV
 
+import warnings
+warnings.filterwarnings("ignore")
+
 features_dir = '/SSD/slava/algonauts/clip_large_features'
 data_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_data'
 parent_submission_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_submission_clip_large'

@@ -7,9 +7,12 @@ from sklearn.model_selection import GridSearchCV
 
 import torch
 
+import warnings
+warnings.filterwarnings("ignore")
+
 features_dir = '/SSD/slava/algonauts/sam_large_features'
 data_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_data'
-parent_submission_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_submission_sam_extended'
+parent_submission_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_submission_sam_extended_kernel16'
 
 
 def load_dataset(npy_dir):
@@ -20,7 +23,7 @@ def load_dataset(npy_dir):
         img_feat = np.load(os.path.join(npy_dir, npy_file))
         
         img_feat = torch.nn.functional.avg_pool2d(
-            torch.Tensor(img_feat), kernel_size=32
+            torch.Tensor(img_feat), kernel_size=16
         ).view(-1).numpy()
         
         image_features.append(img_feat)

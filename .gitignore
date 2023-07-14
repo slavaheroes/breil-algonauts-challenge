@@ -1,5 +1,6 @@
 .vscode
 playground.ipynb
+imagenet*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
