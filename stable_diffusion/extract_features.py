@@ -84,9 +84,7 @@ def make_latents(sample_img, text_input):
     # Adding noise to the latents 
     noise = torch.randn(init_latents.shape, generator=generator, device=torch_device, dtype=init_latents.dtype)
     noised_latents = scheduler.add_noise(init_latents, noise, timesteps)
-    
-    del uncond_embeddings, noise, sample_img
-    
+        
     latents = noised_latents
     
     init_latents = init_latents.cpu()
@@ -153,6 +151,12 @@ if __name__=="__main__":
     print("Save directory is ", save_dir_train)    
     for img_name in tqdm(image_filenames):
         img_path = os.path.join(images_folder, img_name)
+        save_name = os.path.join(
+            save_dir_train, img_name.replace(".png", ".pickle")
+        )
+        
+        if os.path.exists(save_name):
+            continue
         
         sample_img = load_img(img_path)
         
@@ -170,22 +174,28 @@ if __name__=="__main__":
         
         z, z_t, z_c = make_latents(sample_img, text_input)
                 
-        save_name = os.path.join(
-            save_dir_train, img_name.replace(".png", ".pickle")
-        )
-        
         with open(save_name, 'wb') as f:
             pickle.dump({
                 "z": z, "z_t": z_t, "z_c": z_c
             }, f, protocol=pickle.HIGHEST_PROTOCOL)
             
     # Testing features
+    images_folder = os.path.join(data_dir, f'subj0{subj}/test_split/test_images/')
+    image_filenames = sorted(os.listdir(images_folder))
+    print(f'Subj0{subj}: filenames are {image_filenames[:3]}')
+    
     save_dir_test = os.path.join(save_dir, 'subj'+format(subj, '02'), 'test_features')
     os.makedirs(save_dir_test, exist_ok=True)
     
     print("Save directory is ", save_dir_test)    
     for img_name in tqdm(image_filenames):
         img_path = os.path.join(images_folder, img_name)
+        save_name = os.path.join(
+            save_dir_test, img_name.replace(".png", ".pickle")
+        )
+        
+        if os.path.exists(save_name):
+            continue
         
         sample_img = load_img(img_path)
         
@@ -202,11 +212,7 @@ if __name__=="__main__":
         )
  
         z, z_t, z_c = make_latents(sample_img, text_input)
-                
-        save_name = os.path.join(
-            save_dir_test, img_name.replace(".png", ".pickle")
-        )
-        
+                        
         with open(save_name, 'wb') as f:
             pickle.dump({
                 "z": z, "c": z_t, "z_c": z_c

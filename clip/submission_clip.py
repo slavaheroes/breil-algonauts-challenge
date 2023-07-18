@@ -25,7 +25,6 @@ def load_dataset(npy_dir):
     return image_features
         
 
-
 class argObj:
   def __init__(self, data_dir, parent_submission_dir, subj):
     
