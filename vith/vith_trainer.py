@@ -103,6 +103,9 @@ class AlgonautsTrainer(pl.LightningModule):
             }
         )
 
+        self.log('valid_loss', loss)
+        self.log('valid_nn_corr_coeff', nn_corr_coeff)
+
         return {'valid_loss': loss}
     
     def on_validation_epoch_end(self):

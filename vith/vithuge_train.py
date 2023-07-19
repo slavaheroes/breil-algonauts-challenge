@@ -115,7 +115,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train UDA model for MRI imaging for classification of AD')
     parser.add_argument('--seed', type=int, help='Experiment seed (for reproducible results)')
     parser.add_argument('--epochs', type=int, default=20, help='Number of epochs to train the model')
-    parser.add_argument('--bs', type=int, default=32, help='Batch size')
+    parser.add_argument('--bs', type=int, default=24, help='Batch size')
     parser.add_argument('--hemisphere', type=str, default='left', help='fMRI hemisphere data to train on [left, right, both]')
     parser.add_argument('--devices', type=str, help='GPU devices to use')
     args = parser.parse_args()
@@ -205,11 +205,11 @@ if __name__ == "__main__":
 
         train_dataloader = DataLoader(
             AlgonautsImageDataset(train_imgs_paths, lh_fmri_train, rh_fmri_train, idxs_train, transform, device, hemisphere=args.hemisphere), 
-            batch_size=batch_size
+            batch_size=batch_size, num_workers=8
         )
         val_datalaoder = DataLoader(
             AlgonautsImageDataset(train_imgs_paths, lh_fmri_val, rh_fmri_val, idxs_val, transform, device, hemisphere=args.hemisphere), 
-            batch_size=batch_size
+            batch_size=batch_size, num_workers=8
         )
 
         '''

@@ -81,7 +81,10 @@ target/
 vith/logs/
 vith/subj*/
 vith/submission/
-
+vitl/vitl_features/
+vitl/vitl_submission/
+eva/eva_features/
+eva/eva_submission/
 
 # Jupyter Notebook
 .ipynb_checkpoints
