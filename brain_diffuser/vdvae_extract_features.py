@@ -143,36 +143,25 @@ if __name__=="__main__":
             data_input, target = preprocess_fn(img.unsqueeze(0))
             with torch.no_grad():
                 activations = ema_vae.encoder.forward(data_input)
-                px_z, stats = ema_vae.decoder.forward(activations, get_latents=True)
-                
-                latents = []
-                for i in range(num_latents):
-                    latents.append(stats[i]['z'].cpu().numpy().reshape(len(data_input), -1))
-                
-                latents = np.hstack(latents)
-
-            # save features
-            with open(
-                os.path.join(save_dir_train, filename[:-4] + ".npy"), 'wb'
-            ) as f:
-                np.save(f, latents)
+                px_z, _ = ema_vae.decoder.forward(activations, get_latents=True)
+                sample_from_latent = ema_vae.decoder.out_net.sample(px_z)
+                im = sample_from_latent[0]                
+            
+            im = Image.fromarray(im)
+            im = im.resize((512,512),resample=3)
+            im.save(os.path.join(save_dir_train, filename))
+            
             
         for img, filename in tqdm(test_ds, desc=f'subj {subj} test'):
             data_input, target = preprocess_fn(img.unsqueeze(0))
             with torch.no_grad():
                 activations = ema_vae.encoder.forward(data_input)
-                px_z, stats = ema_vae.decoder.forward(activations, get_latents=True)
-                
-                latents = []
-                for i in range(num_latents):
-                    latents.append(stats[i]['z'].cpu().numpy().reshape(len(data_input), -1))
-                
-                latents = np.hstack(latents)
-
-            # save features
-            with open(
-                os.path.join(save_dir_test, filename[:-4] + ".npy"), 'wb'
-            ) as f:
-                np.save(f, latents)
+                px_z, _ = ema_vae.decoder.forward(activations, get_latents=True)
+                sample_from_latent = ema_vae.decoder.out_net.sample(px_z)
+                im = sample_from_latent[0]                
+            
+            im = Image.fromarray(im)
+            im = im.resize((512,512),resample=3)
+            im.save(os.path.join(save_dir_test, filename))
         
             
