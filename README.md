@@ -10,6 +10,8 @@ Little review of current existing files:
 
 `coco_image_matching.ipynb` - notebook to match ids of NSD images to the original images from COCO to get corresponding annotations.
 
+`roi_scores.ipynb` - notebook that compares different submission outputs
+
 ### Our works
 
 `clip` - folder with scripts using CLIP model
@@ -21,3 +23,4 @@ Little review of current existing files:
 `clip_sam_nn` - folder with scripts where Neural Network from CLIP and SAM features are fit to the fMRI voxels
 
 `vith` - end-to-end training of ViT-H model initialized with ImageNet Weights
+
