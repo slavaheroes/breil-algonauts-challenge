@@ -46,8 +46,8 @@ xtype = 'image'
 ctype = 'prompt'
 
 vdvae_inputs = "/SSD/slava/algonauts/brain_diffuser_vdvae_features/"
-clip_large_features_dir = "/SSD/slava/algonauts/clip_large_features/"
-clip_large_txt_features_dir = "/SSD/slava/algonauts/clip_text_features/"
+clip_large_features_dir = "/SSD/slava/algonauts/brain_diffuser_clip_vision_features/"
+clip_large_txt_features_dir = "/SSD/slava/algonauts/brain_diffuser_clip_text_features/"
 save_dir = "/SSD/slava/algonauts/versatile_diffusion_features"
 
 ##### END
@@ -146,9 +146,6 @@ def generate_features(folder, devices, save_dir):
         sampler.model.model.diffusion_model.device=f'cuda:{devices[1]}'
         sampler.model.model.diffusion_model.half().cuda(devices[1])
         
-        print(uim.shape, cim.shape)
-        print(utx.shape, ctx.shape)
-        
         z = sampler.decode_dc(
             x_latent=z_enc,
             first_conditioning=[uim, cim],
@@ -161,24 +158,22 @@ def generate_features(folder, devices, save_dir):
             mixed_ratio=(1-mixing),
         )
         
-        z = z.cuda(devices[0]).half()
-        
+        # z = z.cuda(devices[0]).half()
+        z = z.cpu().detach().numpy()
+        assert np.isnan(z).sum()==0, 'nan value in the z'
         # save features
         save_path = os.path.join(save_dir, filename)
-        print(save_path)
         with open(save_path, 'wb') as f:
-            np.save(f, z.cpu().detach().numpy())
+            np.save(f, z)
         
-        # generate images
-        x = net.autokl_decode(z)
+        # # generate images
+        # x = net.autokl_decode(z)
 
-        x = torch.clamp((x+1.0)/2.0, min=0.0, max=1.0)
-        x = [tvtrans.ToPILImage()(xi) for xi in x]
+        # x = torch.clamp((x+1.0)/2.0, min=0.0, max=1.0)
+        # x = [tvtrans.ToPILImage()(xi) for xi in x]
         
-        x[0].save(save_path.replace(".npy", ".png"))
-        
-        break
-        
+        # x[0].save(save_path.replace(".npy", ".png"))
+
 
 def main(args, first_gpu, second_gpu):
     torch.manual_seed(args.seed)
