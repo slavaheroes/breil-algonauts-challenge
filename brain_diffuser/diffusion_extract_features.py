@@ -82,7 +82,7 @@ def load_img(path):
     img = regularize_image(img)
     return img*2 - 1
 
-def generate_features(folder, devices, save_dir):
+def generate_features(folder, devices, save_dir, start_idx):
     net.clip.cuda(devices[0])
     net.autokl.cuda(devices[0])
     net.autokl.half()
@@ -90,26 +90,34 @@ def generate_features(folder, devices, save_dir):
     #sampler.model.model.cuda(1)
     #sampler.model.cuda(1)
     
-    
     os.makedirs(save_dir, exist_ok=True)
     
     clip_vision = os.path.join(
         clip_large_features_dir, folder
     )
+    clip_vision_paths = sorted(os.listdir(clip_vision))[start_idx:]
     
     clip_text = os.path.join(
         clip_large_txt_features_dir, folder
     )
+    clip_text_paths = sorted(os.listdir(clip_text))[start_idx:]
     
     vdvae_feat = os.path.join(
         vdvae_inputs, folder
     )
+    vdvae_feat_paths = sorted(os.listdir(vdvae_feat))[start_idx:]
     
-    for clip_v_path, clip_t_path, vdvae_path in tqdm.tqdm(zip(sorted(os.listdir(clip_vision)),
-                        sorted(os.listdir(clip_text)),
-                        sorted(os.listdir(vdvae_feat)))):
+    for clip_v_path, clip_t_path, vdvae_path in tqdm.tqdm(zip(clip_vision_paths,
+                        clip_text_paths,
+                        vdvae_feat_paths)):
         
         filename = clip_v_path
+        save_path = os.path.join(save_dir, filename)
+        
+        if os.path.exists(save_path):
+            continue
+        
+        print("DOING: ", save_path)
         
         clip_v_path = os.path.join(clip_vision, clip_v_path)
         clip_t_path = os.path.join(clip_text, clip_t_path)
@@ -162,7 +170,7 @@ def generate_features(folder, devices, save_dir):
         z = z.cpu().detach().numpy()
         assert np.isnan(z).sum()==0, 'nan value in the z'
         # save features
-        save_path = os.path.join(save_dir, filename)
+        
         with open(save_path, 'wb') as f:
             np.save(f, z)
         
@@ -185,7 +193,7 @@ def main(args, first_gpu, second_gpu):
     
     generate_features(train_dir, devices, os.path.join(
         save_dir, train_dir
-    ))
+    ), args.start_idx)
     generate_features(test_dir, devices, os.path.join(
         save_dir, test_dir
     ))
@@ -196,6 +204,7 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser(description="Generate features based on Versatile Diffusion latents")
     parser.add_argument('--subj', type=int)
     parser.add_argument('--gpus', type=str, default="1,2")
+    parser.add_argument('--start_idx', type=int, default=0)
     parser.add_argument('--seed', type=int, default=0)
     args = parser.parse_args()
     
