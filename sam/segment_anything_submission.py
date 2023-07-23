@@ -2,8 +2,9 @@ import os
 import numpy as np
 from tqdm import tqdm
 
-from sklearn.linear_model import Ridge
-from sklearn.model_selection import GridSearchCV
+from sklearn.linear_model import RidgeCV
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 import torch
 
@@ -12,7 +13,7 @@ warnings.filterwarnings("ignore")
 
 features_dir = '/SSD/slava/algonauts/sam_large_features'
 data_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_data'
-parent_submission_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_submission_sam_extended_kernel16'
+parent_submission_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_submission_sam_extended_kernel8'
 
 
 def load_dataset(npy_dir):
@@ -23,7 +24,7 @@ def load_dataset(npy_dir):
         img_feat = np.load(os.path.join(npy_dir, npy_file))
         
         img_feat = torch.nn.functional.avg_pool2d(
-            torch.Tensor(img_feat), kernel_size=16
+            torch.Tensor(img_feat), kernel_size=8
         ).view(-1).numpy()
         
         image_features.append(img_feat)
@@ -65,30 +66,34 @@ if __name__ == "__main__":
             
         # Fit some model: Currently Ridge Linear Regression
         # Do Grid Search
-        parameters = {  
-                    'alpha': [0.1, 1.0, 5, 10, 100],
-                    }
+        alpha_values = (0.000001,0.00001,0.0001, 0.01, 0.1, 1.0, 100, 1000)
         
-        reg_lh = GridSearchCV(
-            estimator=Ridge(),
-            param_grid=parameters
+        preprocess_pipe = make_pipeline(
+           MinMaxScaler()
+        )
+
+        reg_lh = make_pipeline(
+        #    preprocess_pipe,
+           RidgeCV(alphas=alpha_values)
         )
         reg_lh.fit(train_features, lh_fmri)
         
-        print(f'Subj {subj} LH scores: {reg_lh.best_score_}')
+        print(f'Subj {subj} LH scores: {reg_lh[0].best_score_}')
         
-        reg_rh = GridSearchCV(
-            estimator=Ridge(),
-            param_grid=parameters
+        reg_rh = make_pipeline(
+        #    preprocess_pipe,
+           RidgeCV(alphas=alpha_values)
         )
         
         reg_rh.fit(train_features, rh_fmri)
         
-        print(f'Subj {subj} RH scores: {reg_rh.best_score_}')
+        print(f'Subj {subj} RH scores: {reg_rh[0].best_score_}')
         
         lh_fmri_test_pred = reg_lh.predict(test_features)
         rh_fmri_test_pred = reg_rh.predict(test_features)
         print(f'LH: {np.isnan(lh_fmri_test_pred).any()}, RH: {np.isnan(rh_fmri_test_pred).any()}')
+
+        print(args.subject_submission_dir)
                 
         np.save(os.path.join(args.subject_submission_dir, 'lh_pred_test.npy'), lh_fmri_test_pred)
         np.save(os.path.join(args.subject_submission_dir, 'rh_pred_test.npy'), rh_fmri_test_pred)

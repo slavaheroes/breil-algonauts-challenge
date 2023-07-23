@@ -1,16 +1,20 @@
 import os
 import numpy as np
+from glob import glob
 
 from sklearn.linear_model import RidgeCV
 from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+
+import skimage.measure
 
 import warnings
 warnings.filterwarnings("ignore")
 
-features_dir = '/SSD/slava/algonauts/clip_base_features'
+features_dir = '/SSD/slava/algonauts/versatile_diffusion_features'
 data_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_data'
-parent_submission_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_submission_clip_base_original'
+parent_submission_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_submission_versatile_diffusion_v1'
 
 
 def load_dataset(npy_dir):
@@ -18,11 +22,21 @@ def load_dataset(npy_dir):
     image_features = []
     
     for npy_file in npy_files:
-        img_feat = np.load(os.path.join(npy_dir, npy_file))
+        if not npy_file.endswith(".npy"):
+           continue
         
+        img_feat = np.load(os.path.join(npy_dir, npy_file))
+        img_feat = skimage.measure.block_reduce(img_feat, block_size=(1, 1, 2, 2), func=np.mean)
+
+        img_feat = img_feat.flatten()
         image_features.append(img_feat)
-    
+
     image_features = np.array(image_features)
+
+    # do PCA
+    # pca = PCA(n_components=6400)
+    # image_features = pca.fit_transform(image_features)
+
     return image_features
         
 
@@ -62,25 +76,25 @@ if __name__ == "__main__":
         alpha_values = (0.000001,0.00001,0.0001, 0.01, 0.1, 1.0, 100, 1000)
         
         preprocess_pipe = make_pipeline(
-           MinMaxScaler()
+           StandardScaler(with_mean=True, with_std=True)
         )
 
         reg_lh = make_pipeline(
-        #    preprocess_pipe,
+           preprocess_pipe,
            RidgeCV(alphas=alpha_values)
         )
         reg_lh.fit(train_features, lh_fmri)
         
-        print(f'Subj {subj} LH scores: {reg_lh[0].best_score_}')
+        print(f'Subj {subj} LH scores: {reg_lh[1].best_score_}')
         
         reg_rh = make_pipeline(
-        #    preprocess_pipe,
+           preprocess_pipe,
            RidgeCV(alphas=alpha_values)
         )
         
         reg_rh.fit(train_features, rh_fmri)
         
-        print(f'Subj {subj} RH scores: {reg_rh[0].best_score_}')
+        print(f'Subj {subj} RH scores: {reg_rh[1].best_score_}')
         
         lh_fmri_test_pred = reg_lh.predict(test_features)
         rh_fmri_test_pred = reg_rh.predict(test_features)

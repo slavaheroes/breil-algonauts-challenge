@@ -8,3 +8,5 @@ However, before using Diffusion, I'd like to extract features of images using VD
 This folder corresponds to the first stage of the algorithm shown in the paper above.
 
 > June 16th: Very poor results 
+
+> June 22th: Versatile diffusion features -> poor results

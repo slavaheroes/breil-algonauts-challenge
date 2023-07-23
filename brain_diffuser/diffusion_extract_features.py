@@ -82,7 +82,7 @@ def load_img(path):
     img = regularize_image(img)
     return img*2 - 1
 
-def generate_features(folder, devices, save_dir, start_idx):
+def generate_features(folder, devices, save_dir, start_idx=0):
     net.clip.cuda(devices[0])
     net.autokl.cuda(devices[0])
     net.autokl.half()
