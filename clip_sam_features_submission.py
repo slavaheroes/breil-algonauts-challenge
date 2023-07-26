@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import torch
 
 from sklearn.linear_model import RidgeCV
 from sklearn.pipeline import make_pipeline
@@ -9,7 +10,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 data_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_data'
-parent_submission_dir = '/SSD/slava/algonauts/last_submissions/clip_base_vision_text_without_normalization'
+parent_submission_dir = '/SSD/slava/algonauts/last_submissions/clip_base_vision_text_sam_feats_concat_no_normalization'
 
 
 def load_dataset(subj, mode):
@@ -20,18 +21,27 @@ def load_dataset(subj, mode):
         
     image_features_dir = os.path.join("/SSD/slava/algonauts/clip_base_features", f'subj0{subj}', mode)
     text_features_dir = os.path.join("/SSD/slava/algonauts/clip_text_features", f'subj0{subj}', mode)
+    sam_features_dir = os.path.join('/SSD/slava/algonauts/sam_large_features', f'subj0{subj}', mode)
     
     
     npy_img_files = sorted(os.listdir(image_features_dir))
     npy_text_files = sorted(os.listdir(text_features_dir))
+    npy_sam_files = sorted(os.listdir(sam_features_dir))
         
     image_features = []
     
-    for npy_img, npy_text in zip(npy_img_files, npy_text_files):
+    for npy_img, npy_text, npy_sam in zip(npy_img_files, npy_text_files, npy_sam_files):
         
         feat_1 = np.load(os.path.join(image_features_dir, npy_img))
         feat_2 = np.load(os.path.join(text_features_dir, npy_text))
-        img_feat = np.concatenate((feat_1, feat_2), axis=0)
+        
+        # sam features with 16 kernel
+        feat_3 = np.load(os.path.join(sam_features_dir, npy_sam))
+        feat_3 = torch.nn.functional.avg_pool2d(
+            torch.Tensor(feat_3), kernel_size=16
+        ).view(-1).numpy()
+        
+        img_feat = np.concatenate((feat_1, feat_2, feat_3), axis=0)
         
         # assert len(img_feat)==1024, f'{npy_img} {feat_1.shape} {npy_text} {feat_2.shape}'
         image_features.append(img_feat)
