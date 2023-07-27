@@ -14,7 +14,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 data_dir = '/SSD/slava/algonauts/algonauts_2023_challenge_data'
-parent_submission_dir = '/SSD/slava/algonauts/last_submissions/clip_base_vision_text_sam_feats_per_roiclass_submission'
+parent_submission_dir = '/SSD/slava/algonauts/last_submissions/clip_base_vision_text_sam_feats_per_each_roi_submission'
 
 
 def load_dataset(subj, mode):
@@ -110,10 +110,16 @@ if __name__ == "__main__":
     print("RH fMRI ", rh_fmri.shape, "Max ", rh_fmri.max(), "Min ", rh_fmri.min())
     
     # hyperparameter space
-    alpha_values = (0.01, 0.1, 1.0, 100, 1000, 10000)
-    # alpha_values = (1.0)
+    # alpha_values = (0.01, 0.1, 1.0, 100, 1000, 10000)
+    alpha_values = (1.0, 1000)
+    print(alpha_values)
     
     for hemisphere in ['r', 'l']:
+        if os.path.exists(
+            os.path.join(args.subject_submission_dir, f'{hemisphere}h_pred_test.npy')
+        ):
+            continue
+        
         if hemisphere=='r':
             label_arr = rh_fmri
         else:
@@ -122,25 +128,27 @@ if __name__ == "__main__":
         pred_array = np.zeros((test_image_features.shape[0], label_arr.shape[1]))
         roi_zones_array = np.zeros((label_arr.shape[1], ))
         
-        for roi_class, best_id in best_roi_class.items():
-            # roi_class = get_roi_class(roi)
+        # count = 0
+        
+        for roi, best_id in best_ids_dict.items():
+            roi_class = get_roi_class(roi)
             
             # Load ROI brain surface maps
             challenge_roi_class_dir = os.path.join(data_dir, f'subj0{subj}', 'roi_masks', hemisphere+'h.'+roi_class+'_challenge_space.npy')
             roi_map_dir = os.path.join(data_dir, f'subj0{subj}', 'roi_masks', 'mapping_'+roi_class+'.npy')
             challenge_roi_class = np.load(challenge_roi_class_dir)
-            # roi_map = np.load(roi_map_dir, allow_pickle=True).item()
+            roi_map = np.load(roi_map_dir, allow_pickle=True).item()
             
-            # roi_mapping = list(roi_map.keys())[list(roi_map.values()).index(roi)]
-            # challenge_roi = np.asarray(challenge_roi_class == roi_mapping, dtype=int)
-            challenge_roi = (challenge_roi_class>0)
+            roi_mapping = list(roi_map.keys())[list(roi_map.values()).index(roi)]
+            challenge_roi = np.asarray(challenge_roi_class == roi_mapping, dtype=int)
+
+            # remove intersections
+            challenge_roi = challenge_roi - (challenge_roi*roi_zones_array)
             
             # empty roi zone
             if challenge_roi.sum()==0:
                 continue
             
-            # remove intersections
-            challenge_roi = challenge_roi - (challenge_roi*roi_zones_array)
             
             assert challenge_roi.max()==1
             assert challenge_roi.min()==0
@@ -152,7 +160,9 @@ if __name__ == "__main__":
             
             labels = label_arr*challenge_roi_train
             
-            assert (labels!=0).sum() == challenge_roi_train.sum(), f'Subj {subj}, ROI {hemisphere + "_" + roi_class} {(labels!=0).sum()} {challenge_roi_train.sum()}'
+            assert (labels!=0).sum() == challenge_roi_train.sum(), f'Subj {subj}, ROI {hemisphere + "_" + roi} {(labels!=0).sum()} {challenge_roi_train.sum()}'
+            
+            # count += challenge_roi_train.sum()
             
             if best_id==0:
                 suitable_features = train_clip_vision_feats
@@ -165,7 +175,7 @@ if __name__ == "__main__":
                 test_features = test_sam_feats
             
             # Fit Ridge Regression with CV grid search
-            print(f'Start of ROI {hemisphere, roi_class} prediction. Features id: {best_id}, Train shape: {suitable_features.shape}, Test shape: {test_features.shape}')
+            print(f'Start of ROI {hemisphere, roi} prediction. Features id: {best_id}, Train shape: {suitable_features.shape}, Test shape: {test_features.shape}')
             
             start = time.time()
             
@@ -177,7 +187,7 @@ if __name__ == "__main__":
             print(f'ROI {hemisphere, roi_class} pred is finished in {end-start :.3f}, best alpha: {a_model.alpha_}, best_score: {a_model.best_score_}')
             print(f'Pred shape: {roi_pred.shape}, Non-zero: {(roi_pred!=0).sum(), challenge_roi_test.sum()}')
             
-            roi_pred = roi_pred*challenge_roi_test
+            # roi_pred = roi_pred*challenge_roi_test
             
             pred_array = pred_array + roi_pred
                     
@@ -193,6 +203,8 @@ if __name__ == "__main__":
         
         print("Start of non-ROI regression: ", hemisphere, (non_roi_labels!=0).sum(), non_roi_train.sum())
         
+        # count += non_roi_train.sum()
+        
         suitable_features = train_image_features
                 
         start = time.time()
@@ -204,7 +216,7 @@ if __name__ == "__main__":
         print(f'Non ROI {hemisphere} pred is finished in {end-start :.3f}, best_alpha: {a_model.alpha_}, best_score: {a_model.best_score_}')
         print(f'Pred shape: {non_roi_preds.shape}, Non-zero: {(non_roi_preds!=0).sum(), non_roi_test.sum()}')
         
-        non_roi_preds = non_roi_preds*non_roi_test
+        # non_roi_preds = non_roi_preds*non_roi_test
         
         pred_array = pred_array + non_roi_preds
         
@@ -213,5 +225,8 @@ if __name__ == "__main__":
         # save
         pred_array = np.float32(pred_array)
         np.save(os.path.join(args.subject_submission_dir, f'{hemisphere}h_pred_test.npy'), pred_array)
+        
+        # just for some test
+        # print(count, train_image_features.shape[0]*train_image_features.shape[1])
         
     print(f'{subj} is done.')
