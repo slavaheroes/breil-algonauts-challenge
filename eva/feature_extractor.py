@@ -1,4 +1,3 @@
-# https://github.com/openai/CLIP
 import os
 from tqdm import tqdm
 

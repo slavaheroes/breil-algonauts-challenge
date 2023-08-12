@@ -10,7 +10,7 @@ Little review of current existing files:
 
 `coco_image_matching.ipynb` - notebook to match ids of NSD images to the original images from COCO to get corresponding annotations.
 
-`roi_scores.ipynb` - notebook that compares different submission outputs
+`roi_scores.ipynb` - notebook that compares different submission outputs. Eventually, the analysis was used to make ROI based submissions.
 
 ### Our works
 
@@ -18,9 +18,20 @@ Little review of current existing files:
 
 `sam` - folder with scripts using Segment Anything
 
-> `clip_sam_ensemble.ipynb` - computes average of CLIP and SAM predictions
+> `clip_sam_ensemble.ipynb` - computes average or best-ROI of CLIP and SAM predictions. In the final solution, the average was computed.
+
+> `clip_sam_features_submission.py` - all features of CLIP and SAM were concatanated, and one Linear model mapping these features into the fMRI is constructed.
+
+> `clip_sam_roi_wise_submission.py` - a linear model was constructed for each ROI. For particular ROI, the best features were used. For example, prf-visual ROIs the SAM features performed the best, hence for these ROI I used only the SAM features, whereas for other ROI I used CLIP. `per_roi_sh.sh` - bash script that runs submission file sequentially for all subjects.
 
 `clip_sam_nn` - folder with scripts where Neural Network from CLIP and SAM features are fit to the fMRI voxels
 
 `vith` - end-to-end training of ViT-H model initialized with ImageNet Weights
 
+`ViT` - submission based on pretrained ViT models
+
+`eva` - submission based on EVA model
+
+### Conclusion
+
+The best submission score was `50.6`. It comes from the average of CLIP[ViT-B/32] text+image features submission and SAM features [downsampled with avg pooling of kernel size 8] submission.
