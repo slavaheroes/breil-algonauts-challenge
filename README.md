@@ -1,5 +1,5 @@
-# breil-algonauts-challenge
-Repository to store code of BREIL members for Algonauts 2023 challenge
+# BREIL Algonauts challenge
+This is the repository that stores code of BREIL members for Algonauts 2023 challenge.
 
 Little review of current existing files:
 
@@ -35,3 +35,4 @@ Little review of current existing files:
 ### Conclusion
 
 The best submission score was `50.6`. It comes from the average of CLIP[ViT-B/32] text+image features submission and SAM features [downsampled with avg pooling of kernel size 8] submission.
+Among 107 submissions, this one was placed at number 21.
