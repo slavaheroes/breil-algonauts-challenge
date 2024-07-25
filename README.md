@@ -1,5 +1,6 @@
 # BREIL Algonauts challenge
 This is the repository that stores code of BREIL members for Algonauts 2023 challenge.
+A more detailed report can be found [here](./Algonauts_challenge_report.pdf).
 
 Little review of current existing files:
 
